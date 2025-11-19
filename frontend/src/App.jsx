@@ -1,21 +1,48 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useAppSelector } from './hooks/redux';
 import Layout from './components/Layout';
+import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Workspaces from './pages/Workspaces';
 import Projects from './pages/Projects';
 import Tasks from './pages/Tasks';
 
+function PrivateRoute({ children }) {
+  const { token } = useAppSelector((state) => state.auth);
+  return token ? children : <Navigate to="/login" />;
+}
+
 function App() {
+  const { token } = useAppSelector((state) => state.auth);
+
   return (
-    <Layout>
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/workspaces" element={<Workspaces />} />
-        <Route path="/projects" element={<Projects />} />
-        <Route path="/tasks" element={<Tasks />} />
-        <Route path="/settings" element={<div className="p-8"><h1 className="text-2xl font-bold">Configuración</h1><p className="mt-4">Página de configuración (próximamente)</p></div>} />
-      </Routes>
-    </Layout>
+    <Routes>
+      <Route path="/login" element={token ? <Navigate to="/" /> : <Login />} />
+      <Route
+        path="/*"
+        element={
+          <PrivateRoute>
+            <Layout>
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/workspaces" element={<Workspaces />} />
+                <Route path="/projects" element={<Projects />} />
+                <Route path="/tasks" element={<Tasks />} />
+                <Route
+                  path="/settings"
+                  element={
+                    <div className="p-8">
+                      <h1 className="text-2xl font-bold">Configuración</h1>
+                      <p className="mt-4">Página de configuración (próximamente)</p>
+                    </div>
+                  }
+                />
+              </Routes>
+            </Layout>
+          </PrivateRoute>
+        }
+      />
+    </Routes>
   );
 }
 

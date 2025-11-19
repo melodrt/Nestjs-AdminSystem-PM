@@ -1,55 +1,56 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-
-export interface Workspace {
-  id: number;
-  name: string;
-  description: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { PrismaService } from '../prisma/prisma.service';
+import { Workspace } from '@prisma/client';
 
 @Injectable()
 export class WorkspacesService {
-  private workspaces: Workspace[] = [];
-  private nextId = 1;
+  constructor(private readonly prisma: PrismaService) {}
 
-  getAllWorkspaces(): Workspace[] {
-    return this.workspaces;
+  async getAllWorkspaces(): Promise<Workspace[]> {
+    return this.prisma.workspace.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
-  getWorkspaceById(id: number): Workspace {
-    const workspace = this.workspaces.find((w) => w.id === id);
+  async getWorkspaceById(id: number): Promise<Workspace> {
+    const workspace = await this.prisma.workspace.findUnique({
+      where: { id },
+    });
     if (!workspace) {
       throw new NotFoundException(`Workspace con ID ${id} no encontrado`);
     }
     return workspace;
   }
 
-  createWorkspace(name: string, description: string): Workspace {
-    const newWorkspace: Workspace = {
-      id: this.nextId++,
-      name,
-      description,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    this.workspaces.push(newWorkspace);
-    return newWorkspace;
+  async createWorkspace(name: string, description: string): Promise<Workspace> {
+    return this.prisma.workspace.create({
+      data: {
+        name,
+        description,
+      },
+    });
   }
 
-  updateWorkspace(id: number, name?: string, description?: string): Workspace {
-    const workspace = this.getWorkspaceById(id);
-    if (name !== undefined) workspace.name = name;
-    if (description !== undefined) workspace.description = description;
-    workspace.updatedAt = new Date();
-    return workspace;
+  async updateWorkspace(
+    id: number,
+    name?: string,
+    description?: string,
+  ): Promise<Workspace> {
+    await this.getWorkspaceById(id); // Validar que existe
+
+    return this.prisma.workspace.update({
+      where: { id },
+      data: {
+        ...(name !== undefined && { name }),
+        ...(description !== undefined && { description }),
+      },
+    });
   }
 
-  deleteWorkspace(id: number): void {
-    const index = this.workspaces.findIndex((w) => w.id === id);
-    if (index === -1) {
-      throw new NotFoundException(`Workspace con ID ${id} no encontrado`);
-    }
-    this.workspaces.splice(index, 1);
+  async deleteWorkspace(id: number): Promise<void> {
+    await this.getWorkspaceById(id); // Validar que existe
+    await this.prisma.workspace.delete({
+      where: { id },
+    });
   }
 }

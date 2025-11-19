@@ -9,26 +9,25 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { WorkspacesService } from './workspaces.service';
-import type { Workspace } from './workspaces.service';
+import { Workspace } from '@prisma/client';
+import { CreateWorkspaceDto, UpdateWorkspaceDto } from './dto/create-workspace.dto';
 
 @Controller('workspaces')
 export class WorkspacesController {
   constructor(private readonly workspacesService: WorkspacesService) {}
 
   @Get()
-  getAllWorkspaces(): Workspace[] {
+  async getAllWorkspaces(): Promise<Workspace[]> {
     return this.workspacesService.getAllWorkspaces();
   }
 
   @Get(':id')
-  getWorkspaceById(@Param('id', ParseIntPipe) id: number): Workspace {
+  async getWorkspaceById(@Param('id', ParseIntPipe) id: number): Promise<Workspace> {
     return this.workspacesService.getWorkspaceById(id);
   }
 
   @Post()
-  createWorkspace(
-    @Body() createWorkspaceDto: { name: string; description: string },
-  ): Workspace {
+  async createWorkspace(@Body() createWorkspaceDto: CreateWorkspaceDto): Promise<Workspace> {
     return this.workspacesService.createWorkspace(
       createWorkspaceDto.name,
       createWorkspaceDto.description,
@@ -36,10 +35,10 @@ export class WorkspacesController {
   }
 
   @Put(':id')
-  updateWorkspace(
+  async updateWorkspace(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateWorkspaceDto: { name?: string; description?: string },
-  ): Workspace {
+    @Body() updateWorkspaceDto: UpdateWorkspaceDto,
+  ): Promise<Workspace> {
     return this.workspacesService.updateWorkspace(
       id,
       updateWorkspaceDto.name,
@@ -48,8 +47,8 @@ export class WorkspacesController {
   }
 
   @Delete(':id')
-  deleteWorkspace(@Param('id', ParseIntPipe) id: number): { message: string } {
-    this.workspacesService.deleteWorkspace(id);
+  async deleteWorkspace(@Param('id', ParseIntPipe) id: number): Promise<{ message: string }> {
+    await this.workspacesService.deleteWorkspace(id);
     return { message: 'Workspace eliminado exitosamente' };
   }
 }

@@ -1,81 +1,76 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { WorkspacesService } from '../workspaces/workspaces.service';
-
-export interface Project {
-  id: number;
-  workspaceId: number;
-  name: string;
-  description: string;
-  status: 'active' | 'archived' | 'completed';
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { Project } from '@prisma/client';
 
 @Injectable()
 export class ProjectsService {
-  private projects: Project[] = [];
-  private nextId = 1;
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly workspacesService: WorkspacesService,
+  ) {}
 
-  constructor(private readonly workspacesService: WorkspacesService) {}
-
-  getAllProjects(): Project[] {
-    return this.projects;
+  async getAllProjects(): Promise<Project[]> {
+    return this.prisma.project.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
-  getProjectsByWorkspace(workspaceId: number): Project[] {
+  async getProjectsByWorkspace(workspaceId: number): Promise<Project[]> {
     // Validar que el workspace existe
-    this.workspacesService.getWorkspaceById(workspaceId);
-    return this.projects.filter((p) => p.workspaceId === workspaceId);
+    await this.workspacesService.getWorkspaceById(workspaceId);
+    return this.prisma.project.findMany({
+      where: { workspaceId },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
-  getProjectById(id: number): Project {
-    const project = this.projects.find((p) => p.id === id);
+  async getProjectById(id: number): Promise<Project> {
+    const project = await this.prisma.project.findUnique({
+      where: { id },
+    });
     if (!project) {
       throw new NotFoundException(`Proyecto con ID ${id} no encontrado`);
     }
     return project;
   }
 
-  createProject(workspaceId: number, name: string, description: string): Project {
+  async createProject(workspaceId: number, name: string, description: string): Promise<Project> {
     // Validar que el workspace existe
-    this.workspacesService.getWorkspaceById(workspaceId);
+    await this.workspacesService.getWorkspaceById(workspaceId);
 
-    const newProject: Project = {
-      id: this.nextId++,
-      workspaceId,
-      name,
-      description,
-      status: 'active',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    this.projects.push(newProject);
-    return newProject;
+    return this.prisma.project.create({
+      data: {
+        workspaceId,
+        name,
+        description,
+        status: 'active',
+      },
+    });
   }
 
-  updateProject(
+  async updateProject(
     id: number,
     name?: string,
     description?: string,
     status?: 'active' | 'archived' | 'completed',
-  ): Project {
-    const project = this.getProjectById(id);
-    if (name !== undefined) project.name = name;
-    if (description !== undefined) project.description = description;
-    if (status !== undefined) project.status = status;
-    project.updatedAt = new Date();
-    return project;
+  ): Promise<Project> {
+    await this.getProjectById(id); // Validar que existe
+
+    return this.prisma.project.update({
+      where: { id },
+      data: {
+        ...(name !== undefined && { name }),
+        ...(description !== undefined && { description }),
+        ...(status !== undefined && { status }),
+      },
+    });
   }
 
-  deleteProject(id: number): void {
-    const index = this.projects.findIndex((p) => p.id === id);
-    if (index === -1) {
-      throw new NotFoundException(`Proyecto con ID ${id} no encontrado`);
-    }
-    this.projects.splice(index, 1);
-  }
-
-  deleteProjectsByWorkspace(workspaceId: number): void {
-    this.projects = this.projects.filter((p) => p.workspaceId !== workspaceId);
+  async deleteProject(id: number): Promise<void> {
+    await this.getProjectById(id); // Validar que existe
+    await this.prisma.project.delete({
+      where: { id },
+    });
   }
 }

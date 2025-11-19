@@ -1,8 +1,13 @@
-import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, ListTodo, Settings, FolderKanban } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAppDispatch, useAppSelector } from '../hooks/redux';
+import { logout } from '../store/slices/authSlice';
+import { LayoutDashboard, ListTodo, Settings, FolderKanban, LogOut, User } from 'lucide-react';
 
 export default function Layout({ children }) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const { user } = useAppSelector((state) => state.auth);
 
   const navItems = [
     { path: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -12,11 +17,16 @@ export default function Layout({ children }) {
     { path: '/settings', label: 'Configuración', icon: Settings },
   ];
 
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/login');
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900" style={{ minHeight: '100vh' }}>
       {/* Sidebar */}
-      <aside className="fixed left-0 top-0 h-full w-64 bg-white dark:bg-gray-800 shadow-lg z-10">
-        <div className="p-6">
+      <aside className="fixed left-0 top-0 h-full w-64 bg-white dark:bg-gray-800 shadow-lg z-10 flex flex-col">
+        <div className="p-6 flex-1">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-8">
             📋 PM Platform
           </h1>
@@ -40,6 +50,24 @@ export default function Layout({ children }) {
               );
             })}
           </nav>
+        </div>
+        <div className="p-6 border-t border-gray-200 dark:border-gray-700">
+          {user && (
+            <div className="mb-4 flex items-center gap-3 text-gray-700 dark:text-gray-300">
+              <User size={20} />
+              <div className="flex-1">
+                <p className="font-medium text-sm">{user.name}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
+              </div>
+            </div>
+          )}
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+          >
+            <LogOut size={18} />
+            <span className="font-medium">Cerrar Sesión</span>
+          </button>
         </div>
       </aside>
 

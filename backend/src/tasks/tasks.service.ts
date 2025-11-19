@@ -1,81 +1,84 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { ProjectsService } from '../projects/projects.service';
-
-export interface Task {
-  id: number;
-  projectId: number;
-  title: string;
-  description: string;
-  status: 'todo' | 'in-progress' | 'done';
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { Task } from '@prisma/client';
 
 @Injectable()
 export class TasksService {
-  private tasks: Task[] = [];
-  private nextId = 1;
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly projectsService: ProjectsService,
+  ) {}
 
-  constructor(private readonly projectsService: ProjectsService) {}
-
-  getAllTasks(): Task[] {
-    return this.tasks;
+  async getAllTasks(): Promise<Task[]> {
+    return this.prisma.task.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
-  getTasksByProject(projectId: number): Task[] {
+  async getTasksByProject(projectId: number): Promise<Task[]> {
     // Validar que el proyecto existe
-    this.projectsService.getProjectById(projectId);
-    return this.tasks.filter((t) => t.projectId === projectId);
+    await this.projectsService.getProjectById(projectId);
+    return this.prisma.task.findMany({
+      where: { projectId },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
-  getTaskById(id: number): Task {
-    const task = this.tasks.find((t) => t.id === id);
+  async getTaskById(id: number): Promise<Task> {
+    const task = await this.prisma.task.findUnique({
+      where: { id },
+    });
     if (!task) {
       throw new NotFoundException(`Tarea con ID ${id} no encontrada`);
     }
     return task;
   }
 
-  createTask(projectId: number, title: string, description: string): Task {
+  async createTask(
+    projectId: number,
+    title: string,
+    description: string,
+    assignedTo?: number,
+  ): Promise<Task> {
     // Validar que el proyecto existe
-    this.projectsService.getProjectById(projectId);
+    await this.projectsService.getProjectById(projectId);
 
-    const newTask: Task = {
-      id: this.nextId++,
-      projectId,
-      title,
-      description,
-      status: 'todo',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    this.tasks.push(newTask);
-    return newTask;
+    return this.prisma.task.create({
+      data: {
+        projectId,
+        title,
+        description,
+        status: 'todo',
+        ...(assignedTo !== undefined && { assignedTo }),
+      },
+    });
   }
 
-  updateTask(
+  async updateTask(
     id: number,
     title?: string,
     description?: string,
     status?: 'todo' | 'in-progress' | 'done',
-  ): Task {
-    const task = this.getTaskById(id);
-    if (title !== undefined) task.title = title;
-    if (description !== undefined) task.description = description;
-    if (status !== undefined) task.status = status;
-    task.updatedAt = new Date();
-    return task;
+    assignedTo?: number,
+  ): Promise<Task> {
+    await this.getTaskById(id); // Validar que existe
+
+    return this.prisma.task.update({
+      where: { id },
+      data: {
+        ...(title !== undefined && { title }),
+        ...(description !== undefined && { description }),
+        ...(status !== undefined && { status }),
+        ...(assignedTo !== undefined && { assignedTo }),
+      },
+    });
   }
 
-  deleteTask(id: number): void {
-    const index = this.tasks.findIndex((t) => t.id === id);
-    if (index === -1) {
-      throw new NotFoundException(`Tarea con ID ${id} no encontrada`);
-    }
-    this.tasks.splice(index, 1);
-  }
-
-  deleteTasksByProject(projectId: number): void {
-    this.tasks = this.tasks.filter((t) => t.projectId !== projectId);
+  async deleteTask(id: number): Promise<void> {
+    await this.getTaskById(id); // Validar que existe
+    await this.prisma.task.delete({
+      where: { id },
+    });
   }
 }

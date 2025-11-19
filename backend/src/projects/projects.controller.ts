@@ -10,14 +10,15 @@ import {
   Query,
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
-import type { Project } from './projects.service';
+import { Project } from '@prisma/client';
+import { CreateProjectDto, UpdateProjectDto } from './dto/create-project.dto';
 
 @Controller('projects')
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
   @Get()
-  getAllProjects(@Query('workspaceId') workspaceId?: string): Project[] {
+  async getAllProjects(@Query('workspaceId') workspaceId?: string): Promise<Project[]> {
     if (workspaceId) {
       return this.projectsService.getProjectsByWorkspace(parseInt(workspaceId));
     }
@@ -25,14 +26,12 @@ export class ProjectsController {
   }
 
   @Get(':id')
-  getProjectById(@Param('id', ParseIntPipe) id: number): Project {
+  async getProjectById(@Param('id', ParseIntPipe) id: number): Promise<Project> {
     return this.projectsService.getProjectById(id);
   }
 
   @Post()
-  createProject(
-    @Body() createProjectDto: { workspaceId: number; name: string; description: string },
-  ): Project {
+  async createProject(@Body() createProjectDto: CreateProjectDto): Promise<Project> {
     return this.projectsService.createProject(
       createProjectDto.workspaceId,
       createProjectDto.name,
@@ -41,14 +40,10 @@ export class ProjectsController {
   }
 
   @Put(':id')
-  updateProject(
+  async updateProject(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateProjectDto: {
-      name?: string;
-      description?: string;
-      status?: 'active' | 'archived' | 'completed';
-    },
-  ): Project {
+    @Body() updateProjectDto: UpdateProjectDto,
+  ): Promise<Project> {
     return this.projectsService.updateProject(
       id,
       updateProjectDto.name,
@@ -58,8 +53,8 @@ export class ProjectsController {
   }
 
   @Delete(':id')
-  deleteProject(@Param('id', ParseIntPipe) id: number): { message: string } {
-    this.projectsService.deleteProject(id);
+  async deleteProject(@Param('id', ParseIntPipe) id: number): Promise<{ message: string }> {
+    await this.projectsService.deleteProject(id);
     return { message: 'Proyecto eliminado exitosamente' };
   }
 }
