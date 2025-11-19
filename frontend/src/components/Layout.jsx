@@ -7,6 +7,7 @@ export default function Layout({ children }) {
   const navItems = [
     { path: '/', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/workspaces', label: 'Workspaces', icon: FolderKanban },
+    { path: '/projects', label: 'Proyectos', icon: FolderKanban },
     { path: '/tasks', label: 'Tareas', icon: ListTodo },
     { path: '/settings', label: 'Configuración', icon: Settings },
   ];

@@ -3,8 +3,9 @@ import axios from 'axios';
 const API_URL = 'http://localhost:3000/tasks';
 
 export const tasksApi = {
-  getAllTasks: async () => {
-    const response = await axios.get(API_URL);
+  getAllTasks: async (projectId = null) => {
+    const url = projectId ? `${API_URL}?projectId=${projectId}` : API_URL;
+    const response = await axios.get(url);
     return response.data;
   },
 
@@ -13,8 +14,8 @@ export const tasksApi = {
     return response.data;
   },
 
-  createTask: async (title, description) => {
-    const response = await axios.post(API_URL, { title, description });
+  createTask: async (projectId, title, description) => {
+    const response = await axios.post(API_URL, { projectId, title, description });
     return response.data;
   },
 

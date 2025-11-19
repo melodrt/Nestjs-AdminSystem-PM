@@ -50,21 +50,20 @@ Implementar una plataforma completa de gestión de proyectos basada en el reposi
 - [x] Frontend: Redux slice para Workspaces
 - [x] Integración frontend-backend
 
-### 🔄 ETAPA 4: Sistema de Proyectos
-- [ ] Backend: Módulo de Proyectos
-- [ ] Backend: Relación Workspace-Proyecto
-- [ ] Backend: CRUD de Proyectos
-- [ ] Frontend: Componente de Proyectos
-- [ ] Frontend: Redux slice para Proyectos
-- [ ] Integración frontend-backend
+### ✅ ETAPA 4: Sistema de Proyectos (COMPLETADA)
+- [x] Backend: Módulo de Proyectos
+- [x] Backend: Relación Workspace-Proyecto
+- [x] Backend: CRUD de Proyectos
+- [x] Frontend: Componente de Proyectos
+- [x] Frontend: Redux slice para Proyectos
+- [x] Integración frontend-backend
 
-### 🔄 ETAPA 5: Sistema de Tareas
-- [ ] Backend: Módulo de Tareas (mejorar el existente)
-- [ ] Backend: Relación Proyecto-Tarea
-- [ ] Backend: Estados de tareas (todo, in-progress, done)
-- [ ] Frontend: Componente de Tareas mejorado
-- [ ] Frontend: Redux slice para Tareas
-- [ ] Integración frontend-backend
+### ✅ ETAPA 5: Sistema de Tareas (COMPLETADA)
+- [x] Backend: Módulo de Tareas (mejorado)
+- [x] Backend: Relación Proyecto-Tarea
+- [x] Backend: Estados de tareas (todo, in-progress, done)
+- [x] Frontend: Componente de Tareas mejorado
+- [x] Integración frontend-backend
 
 ### 🔄 ETAPA 6: Sistema de Usuarios y Autenticación
 - [ ] Backend: Módulo de Usuarios

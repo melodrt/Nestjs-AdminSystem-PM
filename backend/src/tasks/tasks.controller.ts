@@ -7,6 +7,7 @@ import {
   Body,
   Param,
   ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import type { Task } from './tasks.service';
@@ -16,7 +17,10 @@ export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
   @Get()
-  getAllTasks(): Task[] {
+  getAllTasks(@Query('projectId') projectId?: string): Task[] {
+    if (projectId) {
+      return this.tasksService.getTasksByProject(parseInt(projectId));
+    }
     return this.tasksService.getAllTasks();
   }
 
@@ -27,9 +31,10 @@ export class TasksController {
 
   @Post()
   createTask(
-    @Body() createTaskDto: { title: string; description: string },
+    @Body() createTaskDto: { projectId: number; title: string; description: string },
   ): Task {
     return this.tasksService.createTask(
+      createTaskDto.projectId,
       createTaskDto.title,
       createTaskDto.description,
     );
@@ -38,13 +43,17 @@ export class TasksController {
   @Put(':id')
   updateTask(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateTaskDto: { title?: string; description?: string; completed?: boolean },
+    @Body() updateTaskDto: {
+      title?: string;
+      description?: string;
+      status?: 'todo' | 'in-progress' | 'done';
+    },
   ): Task {
     return this.tasksService.updateTask(
       id,
       updateTaskDto.title,
       updateTaskDto.description,
-      updateTaskDto.completed,
+      updateTaskDto.status,
     );
   }
 

@@ -1,14 +1,14 @@
 import { configureStore } from '@reduxjs/toolkit';
 import workspacesReducer from './slices/workspacesSlice';
+import projectsReducer from './slices/projectsSlice';
 // import tasksReducer from './slices/tasksSlice';
-// import projectsReducer from './slices/projectsSlice';
 // import authReducer from './slices/authSlice';
 
 export const store = configureStore({
   reducer: {
     workspaces: workspacesReducer,
+    projects: projectsReducer,
     // tasks: tasksReducer,
-    // projects: projectsReducer,
     // auth: authReducer,
   },
 });
