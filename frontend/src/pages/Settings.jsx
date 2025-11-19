@@ -3,7 +3,7 @@ import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { logout, updateUser } from '../store/slices/authSlice';
 import { useNavigate } from 'react-router-dom';
 import { userApi } from '../api/userApi';
-import { User, Lock, Mail, Save, LogOut, AlertCircle, CheckCircle } from 'lucide-react';
+import { User, Lock, Mail, Save, LogOut, AlertCircle, CheckCircle, Trash2, X } from 'lucide-react';
 
 export default function Settings() {
   const dispatch = useAppDispatch();
@@ -12,6 +12,9 @@ export default function Settings() {
   const [activeTab, setActiveTab] = useState('profile');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
   // Profile form
   const [profileData, setProfileData] = useState({
@@ -90,9 +93,29 @@ export default function Settings() {
     }
   };
 
-  const handleLogout = () => {
-    dispatch(logout());
-    navigate('/login');
+  const handleDeleteProfile = async () => {
+    if (deleteConfirmText !== 'ELIMINAR') {
+      setMessage({
+        type: 'error',
+        text: 'Por favor escribe "ELIMINAR" para confirmar',
+      });
+      return;
+    }
+
+    try {
+      setDeleting(true);
+      await userApi.deleteProfile();
+      // Cerrar sesión y redirigir al login
+      dispatch(logout());
+      navigate('/login');
+    } catch (err) {
+      setMessage({
+        type: 'error',
+        text: err.response?.data?.message || 'Error al eliminar el perfil',
+      });
+      setDeleting(false);
+      setShowDeleteModal(false);
+    }
   };
 
   return (
@@ -271,21 +294,86 @@ export default function Settings() {
           </h2>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-900 dark:text-white font-medium">Cerrar Sesión</p>
+              <p className="text-gray-900 dark:text-white font-medium">Eliminar Perfil</p>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Cierra tu sesión actual y vuelve a la página de login
+                Esta acción es permanente y no se puede deshacer. Se eliminarán todos tus datos.
               </p>
             </div>
             <button
-              onClick={handleLogout}
+              onClick={() => setShowDeleteModal(true)}
               className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
             >
-              <LogOut size={18} />
-              Cerrar Sesión
+              <Trash2 size={18} />
+              Eliminar Perfil
             </button>
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center">
+                <AlertCircle className="text-red-600 dark:text-red-400" size={24} />
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  Eliminar Perfil
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Esta acción no se puede deshacer
+                </p>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <p className="text-sm text-gray-700 dark:text-gray-300 mb-4">
+                Esta acción eliminará permanentemente tu cuenta y todos los datos asociados:
+              </p>
+              <ul className="list-disc list-inside text-sm text-gray-600 dark:text-gray-400 space-y-1 mb-4">
+                <li>Tu perfil de usuario</li>
+                <li>Tus membresías en workspaces y proyectos</li>
+                <li>Todas las tareas asignadas a ti</li>
+              </ul>
+              <p className="text-sm font-medium text-gray-900 dark:text-white mb-2">
+                Para confirmar, escribe <span className="text-red-600 dark:text-red-400 font-mono">ELIMINAR</span> en el campo de abajo:
+              </p>
+              <input
+                type="text"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder="ELIMINAR"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-transparent font-mono"
+                autoFocus
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeleteConfirmText('');
+                }}
+                disabled={deleting}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+              >
+                <X size={18} />
+                Cancelar
+              </button>
+              <button
+                onClick={handleDeleteProfile}
+                disabled={deleting || deleteConfirmText !== 'ELIMINAR'}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+              >
+                <Trash2 size={18} />
+                {deleting ? 'Eliminando...' : 'Eliminar Permanentemente'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

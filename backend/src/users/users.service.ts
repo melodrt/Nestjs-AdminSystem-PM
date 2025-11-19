@@ -83,6 +83,18 @@ export class UsersService {
     });
   }
 
+  async deleteUser(id: number): Promise<void> {
+    const user = await this.findById(id);
+    if (!user) {
+      throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
+    }
+
+    // Eliminar el usuario (Prisma manejará las relaciones en cascada según el schema)
+    await this.prisma.user.delete({
+      where: { id },
+    });
+  }
+
   async validateUser(email: string, password: string): Promise<User | null> {
     const user = await this.findByEmail(email);
     if (!user) {

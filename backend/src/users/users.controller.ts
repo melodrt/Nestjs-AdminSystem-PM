@@ -3,6 +3,7 @@ import {
   Get,
   Put,
   Post,
+  Delete,
   Body,
   Param,
   ParseIntPipe,
@@ -58,5 +59,13 @@ export class UsersController {
       changePasswordDto.newPassword,
     );
     return { message: 'Contraseña actualizada exitosamente' };
+  }
+
+  @Delete('profile')
+  @UseGuards(JwtAuthGuard)
+  async deleteProfile(@Request() req): Promise<{ message: string }> {
+    const userId = req.user.sub;
+    await this.usersService.deleteUser(userId);
+    return { message: 'Perfil eliminado exitosamente' };
   }
 }

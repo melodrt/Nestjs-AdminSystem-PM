@@ -15,5 +15,10 @@ export const userApi = {
     });
     return response.data;
   },
+
+  deleteProfile: async () => {
+    const response = await axios.delete(`${API_URL}/profile`);
+    return response.data;
+  },
 };
 

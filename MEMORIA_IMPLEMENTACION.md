@@ -124,12 +124,15 @@ Implementar una plataforma completa de gestión de proyectos basada en el reposi
 - [x] Página de Settings funcional
 - [x] Perfil de usuario (editar nombre y email)
 - [x] Cambio de contraseña
-- [x] Zona de peligro (cerrar sesión)
+- [x] Zona de peligro con eliminación de perfil
+- [x] Modal de confirmación para eliminar perfil
+- [x] Eliminación permanente de cuenta con validación
 
 #### Backend - Endpoints de Usuario (COMPLETADA)
 - [x] Endpoint para obtener todos los usuarios
 - [x] Endpoint para actualizar perfil
 - [x] Endpoint para cambiar contraseña
+- [x] Endpoint para eliminar perfil
 - [x] Protección con JWT Guards
 
 ### 🔄 Funcionalidades Pendientes
@@ -150,10 +153,17 @@ Implementar una plataforma completa de gestión de proyectos basada en el reposi
 - [x] Fechas formateadas en tareas y proyectos
 - [x] Backend actualizado para incluir datos de tareas y proyectos recientes
 
+#### Frontend - Navbar y Componentes Mejorados (COMPLETADA)
+- [x] Búsqueda global (Ctrl+K) para proyectos, tareas y workspaces
+- [x] Sistema de notificaciones con contador de tareas pendientes
+- [x] Toggle de tema oscuro/claro funcional
+- [x] Menú de usuario con dropdown
+- [x] Top bar con todas las funcionalidades integradas
+
 #### Frontend - Mejoras de UX
-- [ ] Notificaciones/Alertas mejoradas (toast notifications)
+- [ ] Notificaciones/Alertas mejoradas (toast notifications) - Sistema básico implementado
 - [ ] Loading states más informativos
-- [ ] Confirmaciones antes de eliminar (mejorar)
+- [x] Confirmaciones antes de eliminar (implementado en Settings)
 
 #### Testing y Documentación
 - [ ] Tests unitarios (backend)

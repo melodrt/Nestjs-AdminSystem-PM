@@ -1,7 +1,11 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { logout } from '../store/slices/authSlice';
-import { LayoutDashboard, ListTodo, Settings, FolderKanban, LogOut, User } from 'lucide-react';
+import { LayoutDashboard, ListTodo, Settings, FolderKanban, LogOut } from 'lucide-react';
+import SearchBar from './SearchBar';
+import Notifications from './Notifications';
+import ThemeToggle from './ThemeToggle';
+import UserMenu from './UserMenu';
 
 export default function Layout({ children }) {
   const location = useLocation();
@@ -51,28 +55,24 @@ export default function Layout({ children }) {
             })}
           </nav>
         </div>
-        <div className="p-6 border-t border-gray-200 dark:border-gray-700">
-          {user && (
-            <div className="mb-4 flex items-center gap-3 text-gray-700 dark:text-gray-300">
-              <User size={20} />
-              <div className="flex-1">
-                <p className="font-medium text-sm">{user.name}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
-              </div>
-            </div>
-          )}
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-          >
-            <LogOut size={18} />
-            <span className="font-medium">Cerrar Sesión</span>
-          </button>
-        </div>
       </aside>
 
+      {/* Top Bar */}
+      <header className="fixed top-0 left-64 right-0 h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 z-20 flex items-center justify-between px-6">
+        <div className="flex-1 max-w-2xl">
+          <SearchBar />
+        </div>
+        <div className="flex items-center gap-4">
+          <Notifications />
+          <div className="relative z-50">
+            <ThemeToggle />
+          </div>
+          <UserMenu />
+        </div>
+      </header>
+
       {/* Main Content */}
-      <main className="ml-64" style={{ marginLeft: '16rem', padding: '2rem' }}>
+      <main className="ml-64 mt-16" style={{ marginLeft: '16rem', marginTop: '4rem', padding: '2rem' }}>
         {children}
       </main>
     </div>
