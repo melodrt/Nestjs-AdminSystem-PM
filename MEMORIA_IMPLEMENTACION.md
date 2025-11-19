@@ -139,6 +139,17 @@ Implementar una plataforma completa de gestión de proyectos basada en el reposi
 - [ ] Middleware para verificar permisos por rol
 - [ ] Validación de pertenencia a workspace/proyecto
 
+#### Frontend - Dashboard Mejorado (COMPLETADA)
+- [x] Sección de progreso de tareas con barra de progreso
+- [x] Sección de proyectos activos con porcentaje
+- [x] Lista de tareas recientes (últimas 10)
+- [x] Lista de proyectos recientes (últimos 10)
+- [x] Sección "Mis Tareas" (tareas asignadas al usuario actual)
+- [x] Navegación rápida a Tasks y Projects
+- [x] Visualización mejorada con iconos y colores
+- [x] Fechas formateadas en tareas y proyectos
+- [x] Backend actualizado para incluir datos de tareas y proyectos recientes
+
 #### Frontend - Mejoras de UX
 - [ ] Notificaciones/Alertas mejoradas (toast notifications)
 - [ ] Loading states más informativos

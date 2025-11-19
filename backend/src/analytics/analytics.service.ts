@@ -5,7 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 export class AnalyticsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getDashboardStats() {
+  async getDashboardStats(userId?: number) {
     const [workspaces, projects, tasks, users] = await Promise.all([
       this.prisma.workspace.count(),
       this.prisma.project.count(),
@@ -23,6 +23,88 @@ export class AnalyticsService {
       _count: true,
     });
 
+    // Obtener tareas recientes (últimas 10)
+    const recentTasks = await this.prisma.task.findMany({
+      take: 10,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        project: {
+          select: {
+            id: true,
+            name: true,
+            workspace: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // Obtener proyectos recientes (últimos 10)
+    const recentProjects = await this.prisma.project.findMany({
+      take: 10,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        workspace: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        _count: {
+          select: {
+            tasks: true,
+            members: true,
+          },
+        },
+      },
+    });
+
+    // Obtener tareas asignadas al usuario actual
+    let myTasks: Array<{
+      id: number;
+      projectId: number;
+      title: string;
+      description: string;
+      status: string;
+      assignedTo: number | null;
+      createdAt: Date;
+      updatedAt: Date;
+      project: {
+        id: number;
+        name: string;
+        workspace: {
+          id: number;
+          name: string;
+        };
+      };
+    }> = [];
+    
+    if (userId) {
+      myTasks = await this.prisma.task.findMany({
+        where: { assignedTo: userId },
+        include: {
+          project: {
+            select: {
+              id: true,
+              name: true,
+              workspace: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+      });
+    }
+
     return {
       overview: {
         totalWorkspaces: workspaces,
@@ -35,12 +117,41 @@ export class AnalyticsService {
           acc[item.status] = item._count;
           return acc;
         }, {} as Record<string, number>),
+        recent: recentTasks.map((task) => ({
+          id: task.id,
+          title: task.title,
+          status: task.status,
+          projectId: task.projectId,
+          projectName: task.project.name,
+          workspaceName: task.project.workspace.name,
+          createdAt: task.createdAt,
+          assignedTo: task.assignedTo,
+        })),
+        myTasks: myTasks.map((task) => ({
+          id: task.id,
+          title: task.title,
+          status: task.status,
+          projectId: task.projectId,
+          projectName: task.project.name,
+          workspaceName: task.project.workspace.name,
+          createdAt: task.createdAt,
+        })),
       },
       projects: {
         byStatus: projectsByStatus.reduce((acc, item) => {
           acc[item.status] = item._count;
           return acc;
         }, {} as Record<string, number>),
+        recent: recentProjects.map((project) => ({
+          id: project.id,
+          name: project.name,
+          status: project.status,
+          workspaceId: project.workspaceId,
+          workspaceName: project.workspace.name,
+          taskCount: project._count.tasks,
+          memberCount: project._count.members,
+          createdAt: project.createdAt,
+        })),
       },
     };
   }

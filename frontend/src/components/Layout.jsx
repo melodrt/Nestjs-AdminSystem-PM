@@ -7,7 +7,7 @@ export default function Layout({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const { user } = useAppSelector((state) => state.auth);
+  const { user } = useAppSelector((state) => state?.auth || {});
 
   const navItems = [
     { path: '/', label: 'Dashboard', icon: LayoutDashboard },
