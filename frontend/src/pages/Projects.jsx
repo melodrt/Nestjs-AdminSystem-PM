@@ -7,7 +7,8 @@ import {
   deleteProject,
 } from '../store/slices/projectsSlice';
 import { fetchWorkspaces } from '../store/slices/workspacesSlice';
-import { Plus, Edit2, Trash2, FolderOpen, Archive, CheckCircle2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, FolderOpen, Archive, CheckCircle2, Users } from 'lucide-react';
+import ProjectMembers from '../components/ProjectMembers';
 
 export default function Projects() {
   const dispatch = useAppDispatch();
@@ -17,6 +18,7 @@ export default function Projects() {
   const [formData, setFormData] = useState({ name: '', description: '' });
   const [editingProject, setEditingProject] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [selectedProjectForMembers, setSelectedProjectForMembers] = useState(null);
 
   useEffect(() => {
     dispatch(fetchWorkspaces());
@@ -247,6 +249,13 @@ export default function Projects() {
                     </div>
                     <div className="flex gap-2">
                       <button
+                        onClick={() => setSelectedProjectForMembers(project.id)}
+                        className="p-2 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded transition-colors"
+                        title="Gestionar miembros"
+                      >
+                        <Users size={18} />
+                      </button>
+                      <button
                         onClick={() => handleEdit(project)}
                         className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
                       >
@@ -287,6 +296,12 @@ export default function Projects() {
           </div>
         )}
       </div>
+      {selectedProjectForMembers && (
+        <ProjectMembers
+          projectId={selectedProjectForMembers}
+          onClose={() => setSelectedProjectForMembers(null)}
+        />
+      )}
     </div>
   );
 }

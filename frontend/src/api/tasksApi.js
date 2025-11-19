@@ -14,8 +14,8 @@ export const tasksApi = {
     return response.data;
   },
 
-  createTask: async (projectId, title, description) => {
-    const response = await axios.post(API_URL, { projectId, title, description });
+  createTask: async (projectId, title, description, assignedTo) => {
+    const response = await axios.post(API_URL, { projectId, title, description, assignedTo });
     return response.data;
   },
 

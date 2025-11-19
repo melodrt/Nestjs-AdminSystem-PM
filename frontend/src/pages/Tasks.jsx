@@ -1,22 +1,34 @@
 import { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { tasksApi } from '../api/tasksApi';
+import { usersApi } from '../api/usersApi';
 import { fetchProjects } from '../store/slices/projectsSlice';
-import { Check, X, Edit2, Trash2, Circle, PlayCircle, CheckCircle2 } from 'lucide-react';
+import { Check, X, Edit2, Trash2, Circle, PlayCircle, CheckCircle2, User } from 'lucide-react';
 
 export default function Tasks() {
   const dispatch = useAppDispatch();
   const { items: projects } = useAppSelector((state) => state.projects);
   const [tasks, setTasks] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
-  const [formData, setFormData] = useState({ title: '', description: '' });
+  const [formData, setFormData] = useState({ title: '', description: '', assignedTo: '' });
   const [editingTask, setEditingTask] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     dispatch(fetchProjects());
+    loadUsers();
   }, [dispatch]);
+
+  const loadUsers = async () => {
+    try {
+      const data = await usersApi.getAllUsers();
+      setUsers(data);
+    } catch (err) {
+      console.error('Error al cargar usuarios:', err);
+    }
+  };
 
   useEffect(() => {
     loadTasks();
@@ -45,12 +57,23 @@ export default function Tasks() {
 
     try {
       setError(null);
+      const taskData = {
+        title: formData.title,
+        description: formData.description,
+        ...(formData.assignedTo && { assignedTo: parseInt(formData.assignedTo) }),
+      };
+      
       if (editingTask) {
-        await tasksApi.updateTask(editingTask.id, formData);
+        await tasksApi.updateTask(editingTask.id, taskData);
       } else {
-        await tasksApi.createTask(selectedProject, formData.title, formData.description);
+        await tasksApi.createTask(
+          selectedProject,
+          formData.title,
+          formData.description,
+          formData.assignedTo ? parseInt(formData.assignedTo) : undefined
+        );
       }
-      setFormData({ title: '', description: '' });
+      setFormData({ title: '', description: '', assignedTo: '' });
       setEditingTask(null);
       loadTasks();
     } catch (err) {
@@ -61,7 +84,11 @@ export default function Tasks() {
 
   const handleEdit = (task) => {
     setEditingTask(task);
-    setFormData({ title: task.title, description: task.description });
+    setFormData({
+      title: task.title,
+      description: task.description,
+      assignedTo: task.assignedTo ? task.assignedTo.toString() : '',
+    });
     setSelectedProject(task.projectId);
   };
 
@@ -210,6 +237,23 @@ export default function Tasks() {
                     rows="3"
                   />
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Asignar a
+                  </label>
+                  <select
+                    value={formData.assignedTo}
+                    onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">Sin asignar</option>
+                    {users.map((user) => (
+                      <option key={user.id} value={user.id}>
+                        {user.name} ({user.email})
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 <div className="flex gap-2">
                   <button
                     type="submit"
@@ -222,7 +266,7 @@ export default function Tasks() {
                       type="button"
                       onClick={() => {
                         setEditingTask(null);
-                        setFormData({ title: '', description: '' });
+                        setFormData({ title: '', description: '', assignedTo: '' });
                       }}
                       className="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg transition-colors"
                     >
@@ -296,11 +340,19 @@ export default function Tasks() {
                                 {task.description}
                               </p>
                             )}
-                            <div className="flex items-center gap-4 mt-2">
+                            <div className="flex items-center gap-4 mt-2 flex-wrap">
                               {project && (
                                 <p className="text-xs text-gray-500 dark:text-gray-500">
                                   Proyecto: {project.name}
                                 </p>
+                              )}
+                              {task.assignedTo && (
+                                <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-500">
+                                  <User size={14} />
+                                  <span>
+                                    {users.find((u) => u.id === task.assignedTo)?.name || 'Usuario'}
+                                  </span>
+                                </div>
                               )}
                               <p className="text-xs text-gray-500 dark:text-gray-500">
                                 Creada: {new Date(task.createdAt).toLocaleDateString('es-ES')}

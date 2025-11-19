@@ -7,7 +7,8 @@ import {
   deleteWorkspace,
 } from '../store/slices/workspacesSlice';
 import { useState } from 'react';
-import { Plus, Edit2, Trash2, FolderKanban } from 'lucide-react';
+import { Plus, Edit2, Trash2, FolderKanban, Users } from 'lucide-react';
+import WorkspaceMembers from '../components/WorkspaceMembers';
 
 export default function Workspaces() {
   const dispatch = useAppDispatch();
@@ -17,6 +18,7 @@ export default function Workspaces() {
   const [formData, setFormData] = useState({ name: '', description: '' });
   const [editingWorkspace, setEditingWorkspace] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [selectedWorkspaceForMembers, setSelectedWorkspaceForMembers] = useState(null);
 
   useEffect(() => {
     dispatch(fetchWorkspaces());
@@ -166,6 +168,13 @@ export default function Workspaces() {
                   </div>
                   <div className="flex gap-2">
                     <button
+                      onClick={() => setSelectedWorkspaceForMembers(workspace.id)}
+                      className="p-2 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded transition-colors"
+                      title="Gestionar miembros"
+                    >
+                      <Users size={18} />
+                    </button>
+                    <button
                       onClick={() => handleEdit(workspace)}
                       className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
                     >
@@ -192,6 +201,12 @@ export default function Workspaces() {
           </div>
         )}
       </div>
+      {selectedWorkspaceForMembers && (
+        <WorkspaceMembers
+          workspaceId={selectedWorkspaceForMembers}
+          onClose={() => setSelectedWorkspaceForMembers(null)}
+        />
+      )}
     </div>
   );
 }
